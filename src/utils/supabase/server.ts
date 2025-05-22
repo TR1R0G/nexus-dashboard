@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
  * Use this helper in Server Components, Route Handlers, Server Actions, and middleware
  * to interact with Supabase from server-side code.
  */
-export async function createClient() {
+export async function supabaseServer() {
   const cookieStore = await cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
