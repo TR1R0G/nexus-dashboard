@@ -17,7 +17,10 @@
     "postcss": "^8.5.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwindcss": "^4.1.7"
+    "react-hook-form": "^7.56.4",
+    "sonner": "^2.0.3",
+    "tailwindcss": "^4.1.7",
+    "zod": "^3.25.20"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
