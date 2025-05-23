@@ -1,5 +1,5 @@
 // app/admin/layout.tsx
-import AdminSidebar from "@/components/layout/AdminSidebar";
+import AdminSidebar from "@/components/layout/admin/AdminSidebar";
 import type { ReactNode } from "react";
 
 export const dynamic = "force-dynamic"; // ensures fresh data for RSC children

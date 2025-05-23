@@ -1,6 +1,6 @@
 "use client";
 
-import braintrustLogo from "@/assets/braintrust_logo.png";
+import braintrustLogo from "@/public/assets/braintrust_logo.png";
 import { supabaseBrowser } from "@/src/utils/supabase/client";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import Image from "next/image";
