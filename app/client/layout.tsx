@@ -1,5 +1,5 @@
-import { ClientSidebar } from "@/components/layout/client/ClientSidebar";
-import { ClientTopBar } from "@/components/layout/client/ClientTopBar";
+import { ClientSidebar } from "@/components/layout/client/general/ClientSidebar";
+import { ClientTopBar } from "@/components/layout/client/general/ClientTopBar";
 import type React from "react";
 
 export default function DashboardLayout({
@@ -12,7 +12,9 @@ export default function DashboardLayout({
       <ClientSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <ClientTopBar />
-        <main className="flex-1 overflow-y-auto p-6 bg-white">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6 bg-[#FAF9F8]">
+          {children}
+        </main>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { Bell, ChevronDown } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "../../ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../../../ui/avatar";
 
 export function ClientTopBar() {
   return (

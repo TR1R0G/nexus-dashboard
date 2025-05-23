@@ -84,7 +84,7 @@ export default function DashboardPage() {
       </Card>
 
       {/* Stats Cards */}
-      <div className="col-span-12 md:col-span-4 space-y-4">
+      <div className="col-span-12 md:col-span-4 space-y-5">
         {/* Time Saved */}
         <Card>
           <CardContent className="pt-2">
@@ -94,7 +94,7 @@ export default function DashboardPage() {
                 <p className="text-3xl font-bold">24.5 hrs</p>
                 <p className="text-xs text-gray-500">Last 7 days</p>
               </div>
-              <div className="text-right">
+              <div className="text-left">
                 <p className="text-3xl font-bold">168.2 hrs</p>
                 <p className="text-xs text-gray-500">All time</p>
               </div>
@@ -104,14 +104,14 @@ export default function DashboardPage() {
 
         {/* Money Saved */}
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-2">
             <p className="text-sm text-gray-500">Money Saved</p>
             <div className="flex justify-between items-end mt-2">
               <div>
                 <p className="text-3xl font-bold">$2,450</p>
                 <p className="text-xs text-gray-500">Last 7 days</p>
               </div>
-              <div className="text-right">
+              <div className="text-left">
                 <p className="text-3xl font-bold">$16,820</p>
                 <p className="text-xs text-gray-500">All time</p>
               </div>
@@ -121,7 +121,7 @@ export default function DashboardPage() {
 
         {/* Active Workflows */}
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-2">
             <p className="text-sm text-gray-500">Active Workflows</p>
             <p className="text-3xl font-bold mt-2">12</p>
             <Link
@@ -143,7 +143,7 @@ export default function DashboardPage() {
               <AvatarFallback>JS</AvatarFallback>
             </Avatar>
             <div className="flex flex-col items-start justify-center">
-              <h3 className="font-semibold text-lg text-gray-900">
+              <h3 className="font-semibold text-xl text-gray-900">
                 John Smith
               </h3>
               <p className="text-sm text-gray-500">Solutions Engineer</p>
