@@ -5,7 +5,7 @@ import {
   AlertTriangle,
   BarChart2,
   CreditCard,
-  FileText,
+  FileBarChart,
   Home,
   Key,
   MessageSquare,
@@ -28,12 +28,12 @@ export function ClientSidebar() {
         </button>
       </div>
 
-      <nav className="flex-1 px-3 py-2 space-y-1">
+      <nav className="flex-1 px-3 py-2 space-y-3">
         <Link
           href="/dashboard"
           className="flex items-center px-3 py-2 text-sm font-medium rounded-md bg-gray-200 text-gray-900"
         >
-          <Home className="mr-3 h-5 w-5 text-gray-500" />
+          <Home className="mr-3 h-6 w-6 text-gray-500" />
           Dashboard
         </Link>
 
@@ -41,7 +41,7 @@ export function ClientSidebar() {
           href="/roi"
           className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100"
         >
-          <BarChart2 className="mr-3 h-5 w-5 text-gray-500" />
+          <BarChart2 className="mr-3 h-6 w-6 text-gray-500" />
           ROI
         </Link>
 
@@ -49,7 +49,7 @@ export function ClientSidebar() {
           href="/reporting"
           className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100"
         >
-          <FileText className="mr-3 h-5 w-5 text-gray-500" />
+          <FileBarChart className="mr-3 h-6 w-6 text-gray-500" />
           Reporting
         </Link>
 
@@ -57,7 +57,7 @@ export function ClientSidebar() {
           href="/credentials"
           className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100"
         >
-          <Key className="mr-3 h-5 w-5 text-gray-500" />
+          <Key className="mr-3 h-6 w-6 text-gray-500" />
           Credentials
         </Link>
 
@@ -65,7 +65,7 @@ export function ClientSidebar() {
           href="/exceptions"
           className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100"
         >
-          <AlertTriangle className="mr-3 h-5 w-5 text-gray-500" />
+          <AlertTriangle className="mr-3 h-6 w-6 text-gray-500" />
           Exceptions
         </Link>
 
@@ -73,7 +73,7 @@ export function ClientSidebar() {
           href="/users"
           className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100"
         >
-          <Users className="mr-3 h-5 w-5 text-gray-500" />
+          <Users className="mr-3 h-6 w-6 text-gray-500" />
           Users
         </Link>
 
@@ -81,7 +81,7 @@ export function ClientSidebar() {
           href="/billing"
           className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100"
         >
-          <CreditCard className="mr-3 h-5 w-5 text-gray-500" />
+          <CreditCard className="mr-3 h-6 w-6 text-gray-500" />
           Billing
         </Link>
 
@@ -89,7 +89,7 @@ export function ClientSidebar() {
           href="/messaging"
           className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100"
         >
-          <MessageSquare className="mr-3 h-5 w-5 text-gray-500" />
+          <MessageSquare className="mr-3 h-6 w-6 text-gray-500" />
           Messaging
         </Link>
       </nav>

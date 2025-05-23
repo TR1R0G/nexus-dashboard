@@ -1,9 +1,21 @@
 "use client";
 
 import { Switch } from "@/components/ui/switch";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+
+type SortField =
+  | "date"
+  | "department"
+  | "name"
+  | "nodes"
+  | "executions"
+  | "exceptions"
+  | "timeSaved"
+  | "costSaved"
+  | "status";
+type SortDirection = "asc" | "desc";
 
 interface WorkflowData {
   date: string;
@@ -31,8 +43,8 @@ const workflowData: WorkflowData[] = [
     nodes: 12,
     executions: 1234,
     exceptions: 23,
-    timeSaved: "156.5 hrs",
-    costSaved: "$15,650",
+    timeSaved: "156.5",
+    costSaved: "15650",
     status: true,
   },
   {
@@ -45,101 +57,215 @@ const workflowData: WorkflowData[] = [
     nodes: 8,
     executions: 456,
     exceptions: 5,
-    timeSaved: "89.2 hrs",
-    costSaved: "$8,920",
+    timeSaved: "89.2",
+    costSaved: "8920",
     status: true,
   },
 ];
 
 export default function WorkflowTable() {
+  const [sortField, setSortField] = useState<SortField>("date");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [statusMap, setStatusMap] = useState(
+    workflowData.reduce(
+      (acc, w, i) => ({ ...acc, [i]: w.status }),
+      {} as Record<number, boolean>
+    )
+  );
+
+  const handleSort = (field: SortField) => {
+    if (field === sortField) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortedData = [...workflowData].sort((a, b) => {
+    let aValue: any = a[sortField];
+    let bValue: any = b[sortField];
+
+    // Special handling for date
+    if (sortField === "date") {
+      aValue = new Date(aValue).getTime();
+      bValue = new Date(bValue).getTime();
+    }
+    // Numeric comparison
+    if (!isNaN(Number(aValue)) && !isNaN(Number(bValue))) {
+      return sortDirection === "asc"
+        ? Number(aValue) - Number(bValue)
+        : Number(bValue) - Number(aValue);
+    }
+    // String comparison
+    if (typeof aValue === "string" && typeof bValue === "string") {
+      return sortDirection === "asc"
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
+    }
+    // Fallback
+    if (sortDirection === "asc") {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
+
   return (
     <div className="border border-[#e5e7eb] rounded-md overflow-hidden">
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-[#faf9f8] border-b border-[#e5e7eb]">
-            <TableHeader label="Create Date/Time" />
-            <TableHeader label="Department" />
-            <TableHeader label="Workflow Name" />
-            <TableHeader label="Description" />
-            <TableHeader label="Nodes" />
-            <TableHeader label="Executions" />
-            <TableHeader label="Exceptions" />
-            <TableHeader label="Time Saved" />
-            <TableHeader label="Cost Saved" />
-            <TableHeaderUnsortable label="Status" />
+            <SortableTableHead
+              title="Create Date/Time"
+              field="date"
+              currentSort={sortField}
+              direction={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHead
+              title="Department"
+              field="department"
+              currentSort={sortField}
+              direction={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHead
+              title="Workflow Name"
+              field="name"
+              currentSort={sortField}
+              direction={sortDirection}
+              onSort={handleSort}
+            />
+            <th className="px-4 py-3 text-left font-medium">Description</th>
+            <SortableTableHead
+              title="Nodes"
+              field="nodes"
+              currentSort={sortField}
+              direction={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHead
+              title="Executions"
+              field="executions"
+              currentSort={sortField}
+              direction={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHead
+              title="Exceptions"
+              field="exceptions"
+              currentSort={sortField}
+              direction={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHead
+              title="Time Saved"
+              field="timeSaved"
+              currentSort={sortField}
+              direction={sortDirection}
+              onSort={handleSort}
+            />
+            <SortableTableHead
+              title="Cost Saved"
+              field="costSaved"
+              currentSort={sortField}
+              direction={sortDirection}
+              onSort={handleSort}
+            />
+            <th className="px-4 py-3 text-left font-medium">Status</th>
           </tr>
         </thead>
         <tbody>
-          {workflowData.map((workflow, index) => {
-            const [status, setStatus] = useState(workflow.status);
-
-            const handleStatusChange = (checked: boolean) => {
-              const confirmed = window.confirm(
-                `Are you sure you want to ${
-                  checked ? "activate" : "deactivate"
-                } this workflow?`
-              );
-              if (confirmed) {
-                setStatus(checked);
-                // Optionally, call your API to update status here
-              }
-            };
-
-            return (
-              <tr key={index} className="border-b border-[#e5e7eb] bg-white">
-                <td className="px-4 py-3">
-                  <div>{workflow.date}</div>
-                  <div>{workflow.time}</div>
-                </td>
-                <td className="px-4 py-3">{workflow.department}</td>
-                <td className="px-4 py-3">
-                  <Link
-                    href={workflow.nameLink}
-                    className="text-[#4e86cf] hover:underline"
-                  >
-                    {workflow.name}
-                  </Link>
-                </td>
-                <td className="px-4 py-3">{workflow.description}</td>
-                <td className="px-4 py-3 text-center">{workflow.nodes}</td>
-                <td className="px-4 py-3 text-center">{workflow.executions}</td>
-                <td className="px-4 py-3 text-center">{workflow.exceptions}</td>
-                <td className="px-4 py-3">{workflow.timeSaved}</td>
-                <td className="px-4 py-3">{workflow.costSaved}</td>
-                <td className="px-4 py-3">
-                  <Switch
-                    checked={status}
-                    onCheckedChange={handleStatusChange}
-                  />
-                </td>
-              </tr>
-            );
-          })}
+          {sortedData.map((workflow, index) => (
+            <tr
+              key={index}
+              className="border-b border-[#e5e7eb] bg-white hover:bg-[#faf9f8]"
+            >
+              <td className="px-4 py-3">
+                <div>{workflow.date}</div>
+                <div>{workflow.time}</div>
+              </td>
+              <td className="px-4 py-3">{workflow.department}</td>
+              <td className="px-4 py-3">
+                <Link
+                  href={workflow.nameLink}
+                  className="text-[#4e86cf] hover:underline"
+                >
+                  {workflow.name}
+                </Link>
+              </td>
+              <td className="px-4 py-3">{workflow.description}</td>
+              <td className="px-4 py-3 text-center">{workflow.nodes}</td>
+              <td className="px-4 py-3 text-center">{workflow.executions}</td>
+              <td className="px-4 py-3 text-center">{workflow.exceptions}</td>
+              <td className="px-4 py-3">{workflow.timeSaved}h</td>
+              <td className="px-4 py-3">
+                ${Number(workflow.costSaved).toLocaleString()}
+              </td>
+              <td className="px-4 py-3">
+                <Switch
+                  checked={statusMap[index]}
+                  onCheckedChange={(checked) => {
+                    const confirmed = window.confirm(
+                      `Are you sure you want to ${
+                        checked ? "activate" : "deactivate"
+                      } this workflow?`
+                    );
+                    if (confirmed) {
+                      setStatusMap((prev) => ({ ...prev, [index]: checked }));
+                    }
+                  }}
+                />
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
   );
 }
 
-interface TableHeaderProps {
-  label: string;
+interface SortableTableHeadProps {
+  title: string;
+  field: SortField;
+  currentSort: SortField;
+  direction: SortDirection;
+  onSort: (field: SortField) => void;
 }
 
-function TableHeader({ label }: TableHeaderProps) {
-  return (
-    <th className="px-4 py-3 text-left font-medium">
-      <div className="flex items-center gap-1">
-        {label}
-        <ArrowUpDown className="h-3.5 w-3.5 text-gray-500" />
-      </div>
-    </th>
-  );
-}
+function SortableTableHead({
+  title,
+  field,
+  currentSort,
+  direction,
+  onSort,
+}: SortableTableHeadProps) {
+  const isActive = currentSort === field;
 
-function TableHeaderUnsortable({ label }: TableHeaderProps) {
   return (
     <th className="px-4 py-3 text-left font-medium">
-      <div className="flex items-center gap-1">{label}</div>
+      <button
+        className="flex items-center gap-1 group"
+        onClick={() => onSort(field)}
+      >
+        {title}
+        <span
+          className={`ml-1 h-4 w-4 ${
+            isActive ? "opacity-100" : "opacity-30 group-hover:opacity-60"
+          }`}
+        >
+          {isActive ? (
+            direction === "asc" ? (
+              <ArrowUp className="h-4 w-4" />
+            ) : (
+              <ArrowDown className="h-4 w-4" />
+            )
+          ) : (
+            <ArrowUp className="h-4 w-4" />
+          )}
+        </span>
+      </button>
     </th>
   );
 }
