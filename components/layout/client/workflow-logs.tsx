@@ -122,7 +122,7 @@ export default function WorkflowLogs({ workflows }: WorkflowLogsProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[200px] text-[#1f2937]">
+              <TableHead className="w-[200px] text-[#1f2937] pl-5 py-4">
                 Timestamp
               </TableHead>
               <TableHead className="text-[#1f2937]">Workflow</TableHead>
