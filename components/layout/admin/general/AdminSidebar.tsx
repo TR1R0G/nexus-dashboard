@@ -1,40 +1,67 @@
 // components/layout/AdminSidebar.tsx
 "use client";
 
-import clsx from "clsx";
-import { FileWarning, Home, List, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
+import braintrustLogo from "@/public/assets/braintrust_logo.png";
+import {
+  AlertTriangle,
+  Building2,
+  CreditCard,
+  FileBarChart,
+  Home,
+  MessageSquare,
+  Repeat,
+  Users,
+} from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const nav = [
-  { href: "/admin", label: "Dashboard", icon: Home },
-  { href: "/admin/clients", label: "Clients", icon: Users },
-  { href: "/admin/plans", label: "Plans", icon: List },
-  { href: "/admin/exceptions", label: "Exceptions", icon: FileWarning },
+const menuItems = [
+  { name: "Dashboard", icon: Home, href: "/", active: true },
+  { name: "Users", icon: Users, href: "/users" },
+  { name: "Clients", icon: Building2, href: "/clients" },
+  { name: "Billing", icon: CreditCard, href: "/billing" },
+  { name: "Subscriptions", icon: Repeat, href: "/subscriptions" },
+  { name: "Messaging", icon: MessageSquare, href: "/messaging" },
+  { name: "Reporting", icon: FileBarChart, href: "/reporting" },
+  { name: "Exceptions", icon: AlertTriangle, href: "/exceptions" },
 ];
 
 export default function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden h-screen w-56 flex-col border-r bg-white p-4 lg:flex">
-      <h1 className="mb-8 text-xl font-bold">Nexus</h1>
+    <div className="w-[194px] h-full bg-[#FAF9F8] border-r flex flex-col">
+      <div className="p-4 flex justify-center">
+        <button className="p-2 rounded-full hover:bg-gray-200">
+          <Image
+            src={braintrustLogo}
+            alt="Braintrust Logo"
+            width={32}
+            height={32}
+          />
+        </button>
+      </div>
 
-      <nav className="flex flex-col gap-2">
-        {nav.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className={clsx(
-              "flex items-center gap-3 rounded px-3 py-2 text-sm hover:bg-muted/50",
-              pathname === href && "bg-primary/10 text-primary"
-            )}
-          >
-            <Icon size={18} />
-            {label}
-          </Link>
+      <nav className="flex-1 px-3 py-2 space-y-3">
+        {menuItems.map((item) => (
+          <div key={item.name}>
+            <Link
+              href={item.href}
+              className={cn(
+                "flex items-center px-3 py-2 text-sm font-medium rounded-md",
+                item.active
+                  ? "bg-gray-200 text-gray-900"
+                  : "text-gray-600 hover:bg-gray-100"
+              )}
+            >
+              <item.icon className="mr-3 h-6 w-6 text-gray-500" />
+              {item.name}
+            </Link>
+          </div>
         ))}
       </nav>
-    </aside>
+    </div>
   );
 }
