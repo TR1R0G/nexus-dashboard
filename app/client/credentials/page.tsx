@@ -1,4 +1,4 @@
-import { CredentialsManager } from "@/components/layout/client/credentials-manager";
+import { CredentialsManager } from "@/components/credentials-manager";
 
 export default function Home() {
   return (

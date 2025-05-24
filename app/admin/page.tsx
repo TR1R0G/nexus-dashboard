@@ -1,7 +1,7 @@
 "use client";
 
-import ClientsTable from "@/components/layout/admin/dashboard/clients-table";
-import DataCards from "@/components/layout/admin/dashboard/data-cards";
+import ClientsTable from "@/components/dashboard/clients-table";
+import DataCards from "@/components/dashboard/data-cards";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/tabs";

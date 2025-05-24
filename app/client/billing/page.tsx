@@ -1,7 +1,7 @@
-import { BillingActions } from "@/components/layout/client/billing/billing-actions";
-import { BillingOverview } from "@/components/layout/client/billing/billing-overview";
-import { RecentInvoices } from "@/components/layout/client/billing/recent-invoices";
-import { UsageSummary } from "@/components/layout/client/billing/usage-summary";
+import { BillingActions } from "@/components/billing/billing-actions";
+import { BillingOverview } from "@/components/billing/billing-overview";
+import { RecentInvoices } from "@/components/billing/recent-invoices";
+import { UsageSummary } from "@/components/billing/usage-summary";
 
 export default function BillingDashboard() {
   return (

@@ -1,4 +1,4 @@
-import WorkflowTable from "@/components/layout/client/workflow-table";
+import WorkflowTable from "@/components/workflow/workflow-table";
 import { Plus } from "lucide-react";
 
 export default function Dashboard() {

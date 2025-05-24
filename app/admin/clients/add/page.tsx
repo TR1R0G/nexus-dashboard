@@ -1,4 +1,4 @@
-import { ClientForm } from "@/components/layout/admin/clients/client-form";
+import { ClientForm } from "@/components/clients/client-form";
 
 export default function Home() {
   return (

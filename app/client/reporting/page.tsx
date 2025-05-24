@@ -1,4 +1,4 @@
-import WorkflowLogs from "@/components/layout/client/workflow-logs";
+import WorkflowLogs from "@/components/workflow/workflow-logs";
 import { Workflow } from "@/lib/types";
 
 // Mock data for demonstration
