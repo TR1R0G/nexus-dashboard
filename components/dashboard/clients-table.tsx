@@ -3,241 +3,181 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
+/* ---------- column types that come back from /api/admin/clients ---------- */
+interface ClientRow {
+  id: string;
+  name: string;
+  contract_start: string;
+  workflows: number;
+  nodes: number;
+  executions: number;
+  exceptions: number;
+  revenue: number;
+  /*  time_saved & money_saved aren’t implemented in the RPC yet
+      so we’ll fake zeros; adjust when you add them on the backend */
+  time_saved?: number;
+  money_saved?: number;
+}
+/* ------------------------------------------------------------------------ */
 
 type SortField =
   | "name"
-  | "contractStart"
+  | "contract_start"
   | "workflows"
   | "nodes"
   | "executions"
   | "exceptions"
-  | "revenue"
-  | "timeSaved"
-  | "moneySaved";
-type SortDirection = "asc" | "desc";
+  | "revenue";
 
-// Sample data - would normally come from an API
-const clients = [
-  {
-    id: 1,
-    name: "Acme Corp",
-    contractStart: "2025-01-15",
-    workflows: 24,
-    nodes: 156,
-    executions: 1847,
-    exceptions: 12,
-    revenue: 24500,
-    timeSaved: 284,
-    moneySaved: 42600,
-  },
-  {
-    id: 2,
-    name: "Globex Industries",
-    contractStart: "2024-11-03",
-    workflows: 36,
-    nodes: 210,
-    executions: 2453,
-    exceptions: 8,
-    revenue: 36750,
-    timeSaved: 412,
-    moneySaved: 58200,
-  },
-  {
-    id: 3,
-    name: "Initech LLC",
-    contractStart: "2025-02-22",
-    workflows: 18,
-    nodes: 92,
-    executions: 1245,
-    exceptions: 15,
-    revenue: 18900,
-    timeSaved: 196,
-    moneySaved: 31400,
-  },
-  {
-    id: 4,
-    name: "Umbrella Corp",
-    contractStart: "2024-12-10",
-    workflows: 42,
-    nodes: 278,
-    executions: 3120,
-    exceptions: 6,
-    revenue: 52800,
-    timeSaved: 520,
-    moneySaved: 74500,
-  },
-];
+type SortDirection = "asc" | "desc";
 
 export default function ClientsTable() {
   const [sortField, setSortField] = useState<SortField>("name");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [sortDir, setSortDir] = useState<SortDirection>("asc");
+  const [range] = useState("itd"); // dashboard’s current timerange
+
+  /* dynamic URL depends on sort field / dir */
+  const {
+    data: clients,
+    isLoading,
+    error,
+  } = useSWR<ClientRow[]>(
+    `/api/admin/clients?range=${range}&sort=${sortField}&dir=${sortDir}`,
+    fetcher
+  );
 
   const handleSort = (field: SortField) => {
     if (field === sortField) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortDirection("asc");
+      setSortDir("asc");
     }
   };
 
-  const sortedClients = [...clients].sort((a, b) => {
-    let aValue = a[sortField];
-    let bValue = b[sortField];
-
-    // Special handling for dates
-    if (sortField === "contractStart") {
-      aValue = new Date(aValue).getTime();
-      bValue = new Date(bValue).getTime();
-    }
-
-    // Numeric comparison
-    if (typeof aValue === "number" && typeof bValue === "number") {
-      return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
-    }
-
-    // String comparison
-    if (typeof aValue === "string" && typeof bValue === "string") {
-      return sortDirection === "asc"
-        ? aValue.localeCompare(bValue)
-        : bValue.localeCompare(aValue);
-    }
-
-    // Fallback
-    if (sortDirection === "asc") {
-      return aValue > bValue ? 1 : -1;
-    } else {
-      return aValue < bValue ? 1 : -1;
-    }
-  });
+  if (isLoading) return <p className="p-4">Loading…</p>;
+  if (error || !clients) return <p className="p-4">Error loading clients</p>;
 
   return (
     <div className="border border-[#e5e7eb] rounded-b-md overflow-hidden">
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-[#faf9f8] border-b border-[#e5e7eb]">
-            <SortableTableHead
+            <SortableHead
               title="Client Name"
               field="name"
-              currentSort={sortField}
-              direction={sortDirection}
+              current={sortField}
+              dir={sortDir}
               onSort={handleSort}
             />
-            <SortableTableHead
+            <SortableHead
               title="Contract Start"
-              field="contractStart"
-              currentSort={sortField}
-              direction={sortDirection}
+              field="contract_start"
+              current={sortField}
+              dir={sortDir}
               onSort={handleSort}
             />
-            <SortableTableHead
+            <SortableHead
               title="Workflows"
               field="workflows"
-              currentSort={sortField}
-              direction={sortDirection}
+              current={sortField}
+              dir={sortDir}
               onSort={handleSort}
             />
-            <SortableTableHead
+            <SortableHead
               title="Nodes"
               field="nodes"
-              currentSort={sortField}
-              direction={sortDirection}
+              current={sortField}
+              dir={sortDir}
               onSort={handleSort}
             />
-            <SortableTableHead
+            <SortableHead
               title="Executions"
               field="executions"
-              currentSort={sortField}
-              direction={sortDirection}
+              current={sortField}
+              dir={sortDir}
               onSort={handleSort}
             />
-            <SortableTableHead
+            <SortableHead
               title="Exceptions"
               field="exceptions"
-              currentSort={sortField}
-              direction={sortDirection}
+              current={sortField}
+              dir={sortDir}
               onSort={handleSort}
             />
-            <SortableTableHead
+            <SortableHead
               title="Revenue"
               field="revenue"
-              currentSort={sortField}
-              direction={sortDirection}
-              onSort={handleSort}
-            />
-            <SortableTableHead
-              title="Time Saved"
-              field="timeSaved"
-              currentSort={sortField}
-              direction={sortDirection}
-              onSort={handleSort}
-            />
-            <SortableTableHead
-              title="Money Saved"
-              field="moneySaved"
-              currentSort={sortField}
-              direction={sortDirection}
+              current={sortField}
+              dir={sortDir}
               onSort={handleSort}
             />
           </tr>
         </thead>
+
         <tbody>
-          {sortedClients.map((client) => (
+          {clients.map((c) => (
             <tr
-              key={client.id}
+              key={c.id}
               className="border-b border-[#e5e7eb] bg-white hover:bg-[#faf9f8]"
             >
               <td className="px-4 py-3 font-medium">
                 <Link
-                  href={`/clients/${client.id}`}
+                  href={`/clients/${c.id}`}
                   className="text-[#4e86cf] hover:underline"
                 >
-                  {client.name}
+                  {c.name}
                 </Link>
               </td>
+
               <td className="px-4 py-3">
                 <Link
-                  href={`/contracts/${client.id}`}
+                  href={`/contracts/${c.id}`}
                   className="text-[#4e86cf] hover:underline"
                 >
-                  {new Date(client.contractStart).toLocaleDateString("en-US", {
+                  {new Date(c.contract_start).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "short",
                     day: "numeric",
                   })}
                 </Link>
               </td>
+
               <td className="px-4 py-3 text-center">
                 <Link
-                  href={`/clients/${client.id}/workflows`}
+                  href={`/clients/${c.id}/workflows`}
                   className="text-[#4e86cf] hover:underline"
                 >
-                  {client.workflows}
+                  {c.workflows}
                 </Link>
               </td>
-              <td className="px-4 py-3 text-center">{client.nodes}</td>
+
+              <td className="px-4 py-3 text-center">{c.nodes}</td>
+
               <td className="px-4 py-3 text-center">
                 <Link
-                  href={`/clients/${client.id}/executions`}
+                  href={`/clients/${c.id}/executions`}
                   className="text-[#4e86cf] hover:underline"
                 >
-                  {client.executions.toLocaleString()}
+                  {c.executions.toLocaleString()}
                 </Link>
               </td>
+
               <td className="px-4 py-3 text-center">
                 <Link
-                  href={`/clients/${client.id}/exceptions`}
+                  href={`/clients/${c.id}/exceptions`}
                   className="text-[#4e86cf] hover:underline"
                 >
-                  {client.exceptions}
+                  {c.exceptions}
                 </Link>
               </td>
+
               <td className="px-4 py-3 text-center">
-                ${client.revenue.toLocaleString()}
-              </td>
-              <td className="px-4 py-3 text-center">{client.timeSaved}h</td>
-              <td className="px-4 py-3 text-center">
-                ${client.moneySaved.toLocaleString()}
+                ${c.revenue.toLocaleString()}
               </td>
             </tr>
           ))}
@@ -247,37 +187,32 @@ export default function ClientsTable() {
   );
 }
 
-interface SortableTableHeadProps {
+/* ---------- helper for table header ---------- */
+
+interface HeadProps {
   title: string;
   field: SortField;
-  currentSort: SortField;
-  direction: SortDirection;
-  onSort: (field: SortField) => void;
+  current: SortField;
+  dir: SortDirection;
+  onSort: (f: SortField) => void;
 }
 
-function SortableTableHead({
-  title,
-  field,
-  currentSort,
-  direction,
-  onSort,
-}: SortableTableHeadProps) {
-  const isActive = currentSort === field;
-
+function SortableHead({ title, field, current, dir, onSort }: HeadProps) {
+  const active = current === field;
   return (
     <th className="px-4 py-3 text-left font-medium">
       <button
-        className="flex items-center gap-1 group"
         onClick={() => onSort(field)}
+        className="group flex items-center gap-1"
       >
         {title}
         <span
           className={`ml-1 h-4 w-4 ${
-            isActive ? "opacity-100" : "opacity-30 group-hover:opacity-60"
+            active ? "opacity-100" : "opacity-30 group-hover:opacity-60"
           }`}
         >
-          {isActive ? (
-            direction === "asc" ? (
+          {active ? (
+            dir === "asc" ? (
               <ArrowUp className="h-4 w-4" />
             ) : (
               <ArrowDown className="h-4 w-4" />

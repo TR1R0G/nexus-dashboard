@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import Link from "next/link";
 import { useState } from "react";
 
 type TimeFilter = "7d" | "30d" | "mtd" | "qtd" | "ytd" | "itd";
@@ -55,8 +56,10 @@ export default function AdminDashboard() {
           <CardContent className="p-0">
             <div className="flex items-center justify-between px-4 py-4 border-b border-[#e5e7eb]">
               <h2 className="text-lg font-medium">All Clients</h2>
-              <Button className="bg-[#141417] hover:bg-[#1f2937]">
-                <span className="mr-1">+</span> Add Client
+              <Button asChild className="bg-[#141417] hover:bg-[#1f2937]">
+                <Link href="/admin/clients/add">
+                  <span className="mr-1">+</span> Add Client
+                </Link>
               </Button>
             </div>
             <ClientsTable />
