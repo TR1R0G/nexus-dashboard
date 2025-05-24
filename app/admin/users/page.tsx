@@ -32,51 +32,43 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Pencil, Plus, Trash2, X } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import useSWR, { mutate } from "swr";
+const fetcher = (u: string) => fetch(u).then((r) => r.json());
+
+/* ------------------------------------------------------------------ */
+/* Types that match the RPC /api/admin/users payload                  */
+/* ------------------------------------------------------------------ */
 
 type AdminUser = {
   id: string;
-  name: string;
+  role: "ADMIN";
+  full_name: string;
   email: string;
-  phone: string;
-  type: "admin";
+  phone: string | null;
 };
 
 type SEUser = {
   id: string;
-  name: string;
+  role: "SE";
+  full_name: string;
   email: string;
-  phone: string;
-  costRate: number;
-  billRate: number;
-  assignedClients: string[];
-  type: "se";
+  phone: string | null;
+  cost_rate: number | null;
+  bill_rate: number | null;
 };
 
 type User = AdminUser | SEUser;
 
 export default function UserManager() {
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: "1",
-      name: "John Smith",
-      email: "john@example.com",
-      phone: "+1 234 567 8900",
-      costRate: 75,
-      billRate: 150,
-      assignedClients: ["Client A", "Client B"],
-      type: "se",
-    },
-    {
-      id: "2",
-      name: "John Doe",
-      email: "john@example.com",
-      phone: "+1 234 567 8900",
-      type: "admin",
-    },
-  ]);
+  const {
+    data: users,
+    isLoading,
+    error,
+  } = useSWR<User[]>("/api/admin/users", fetcher);
 
+  // All hooks must be called unconditionally, before any return!
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -91,56 +83,63 @@ export default function UserManager() {
     phone: "",
     costRate: "",
     billRate: "",
-    assignedClients: [] as string[],
   });
 
-  const [newClient, setNewClient] = useState("");
+  if (isLoading) return <p>Loading…</p>;
+  if (error || !users) return <p>Error loading users</p>;
 
-  const handleAddUser = () => {
-    const newUser: User = {
-      id: Date.now().toString(),
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      type: userType,
-      ...(userType === "se" && {
-        costRate: Number.parseFloat(formData.costRate),
-        billRate: Number.parseFloat(formData.billRate),
-        assignedClients: formData.assignedClients,
-      }),
-    } as User;
+  async function handleAddUser() {
+    const payload = {
+      // p_id: crypto.randomUUID(),
+      p_role: userType.toUpperCase(), // 'ADMIN' | 'SE'
+      p_name: formData.name,
+      p_email: formData.email,
+      p_phone: formData.phone,
+      p_cost_rate: userType === "se" ? Number(formData.costRate) : null,
+      p_bill_rate: userType === "se" ? Number(formData.billRate) : null,
+    };
 
-    setUsers([...users, newUser]);
+    await fetch("/api/admin/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    mutate("/api/admin/users"); // refresh list
     resetForm();
     setIsAddDialogOpen(false);
-  };
+  }
 
-  const handleEditUser = () => {
+  async function handleEditUser() {
     if (!selectedUser) return;
-
-    const updatedUser: User = {
-      ...selectedUser,
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      ...(selectedUser.type === "se" && {
-        costRate: Number.parseFloat(formData.costRate),
-        billRate: Number.parseFloat(formData.billRate),
-        assignedClients: formData.assignedClients,
-      }),
-    } as User;
-
-    setUsers(users.map((u) => (u.id === selectedUser.id ? updatedUser : u)));
+    const payload = {
+      p_id: selectedUser.id,
+      p_role: selectedUser.role,
+      p_name: formData.name,
+      p_email: formData.email,
+      p_phone: formData.phone,
+      p_cost_rate:
+        selectedUser.role === "SE" ? Number(formData.costRate) : null,
+      p_bill_rate:
+        selectedUser.role === "SE" ? Number(formData.billRate) : null,
+    };
+    await fetch("/api/admin/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    mutate("/api/admin/users");
     resetForm();
     setIsEditDialogOpen(false);
-  };
+  }
 
-  const handleDeleteUser = () => {
+  async function handleDeleteUser() {
     if (!selectedUser) return;
-    setUsers(users.filter((u) => u.id !== selectedUser.id));
+    await fetch(`/api/admin/users?id=${selectedUser.id}`, { method: "DELETE" });
+    mutate("/api/admin/users");
     setIsDeleteDialogOpen(false);
     setSelectedUser(null);
-  };
+  }
 
   const resetForm = () => {
     setFormData({
@@ -149,22 +148,21 @@ export default function UserManager() {
       phone: "",
       costRate: "",
       billRate: "",
-      assignedClients: [],
     });
-    setNewClient("");
   };
 
   const openEditDialog = (user: User) => {
     setSelectedUser(user);
     setFormData({
-      name: user.name,
+      name: user.full_name,
       email: user.email,
-      phone: user.phone,
-      costRate: user.type === "se" ? user.costRate.toString() : "",
-      billRate: user.type === "se" ? user.billRate.toString() : "",
-      assignedClients: user.type === "se" ? user.assignedClients : [],
+      phone: user.phone ?? "",
+      costRate:
+        user.role === "SE" && user.cost_rate ? String(user.cost_rate) : "",
+      billRate:
+        user.role === "SE" && user.bill_rate ? String(user.bill_rate) : "",
     });
-    setUserType(user.type);
+    setUserType(user.role === "ADMIN" ? "admin" : "se");
     setIsEditDialogOpen(true);
   };
 
@@ -173,25 +171,8 @@ export default function UserManager() {
     setIsDeleteDialogOpen(true);
   };
 
-  const addClient = () => {
-    if (newClient.trim()) {
-      setFormData({
-        ...formData,
-        assignedClients: [...formData.assignedClients, newClient.trim()],
-      });
-      setNewClient("");
-    }
-  };
-
-  const removeClient = (index: number) => {
-    setFormData({
-      ...formData,
-      assignedClients: formData.assignedClients.filter((_, i) => i !== index),
-    });
-  };
-
-  const adminUsers = users.filter((u) => u.type === "admin");
-  const seUsers = users.filter((u) => u.type === "se");
+  const adminUsers = users.filter((u) => u.role === "ADMIN") as AdminUser[];
+  const seUsers = users.filter((u) => u.role === "SE") as SEUser[];
 
   return (
     <Card className="bg-white">
@@ -268,13 +249,13 @@ export default function UserManager() {
                                   <Avatar className="h-10 w-10">
                                     <AvatarImage src="/placeholder.svg?height=40&width=40" />
                                     <AvatarFallback>
-                                      {user.name
+                                      {user.full_name
                                         .split(" ")
                                         .map((n) => n[0])
                                         .join("")}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <span>{user.name}</span>
+                                  <span>{user.full_name}</span>
                                 </div>
                               </td>
                               <td className="p-4">{user.email}</td>
@@ -320,9 +301,6 @@ export default function UserManager() {
                           <th className="text-left p-4 font-medium">
                             Bill Rate
                           </th>
-                          <th className="text-left p-4 font-medium">
-                            Assigned Clients
-                          </th>
                           <th className="text-left p-4 font-medium">Actions</th>
                         </tr>
                       </thead>
@@ -330,7 +308,7 @@ export default function UserManager() {
                         {seUsers.length === 0 ? (
                           <tr>
                             <td
-                              colSpan={7}
+                              colSpan={6}
                               className="text-center p-8 text-gray-500"
                             >
                               No SE users found
@@ -347,31 +325,19 @@ export default function UserManager() {
                                   <Avatar className="h-10 w-10">
                                     <AvatarImage src="/placeholder.svg?height=40&width=40" />
                                     <AvatarFallback>
-                                      {user.name
+                                      {user.full_name
                                         .split(" ")
                                         .map((n) => n[0])
                                         .join("")}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <span>{user.name}</span>
+                                  <span>{user.full_name}</span>
                                 </div>
                               </td>
                               <td className="p-4">{user.email}</td>
                               <td className="p-4">{user.phone}</td>
-                              <td className="p-4">${user.costRate}/hr</td>
-                              <td className="p-4">${user.billRate}/hr</td>
-                              <td className="p-4">
-                                <div className="flex flex-wrap gap-1">
-                                  {user.assignedClients.map((client, index) => (
-                                    <span
-                                      key={index}
-                                      className="px-2 py-1 bg-[#e5e7eb] rounded text-sm"
-                                    >
-                                      {client}
-                                    </span>
-                                  ))}
-                                </div>
-                              </td>
+                              <td className="p-4">${user.cost_rate ?? 0}/hr</td>
+                              <td className="p-4">${user.bill_rate ?? 0}/hr</td>
                               <td className="p-4">
                                 <div className="flex items-center gap-2">
                                   <Button
@@ -507,43 +473,6 @@ export default function UserManager() {
                       placeholder="150"
                     />
                   </div>
-                  <div className="grid gap-2">
-                    <Label>Assigned Clients</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        value={newClient}
-                        onChange={(e) => setNewClient(e.target.value)}
-                        placeholder="Client name"
-                        onKeyPress={(e) =>
-                          e.key === "Enter" && (e.preventDefault(), addClient())
-                        }
-                      />
-                      <Button
-                        type="button"
-                        onClick={addClient}
-                        variant="outline"
-                      >
-                        Add
-                      </Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {formData.assignedClients.map((client, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-1 px-2 py-1 bg-[#e5e7eb] rounded"
-                        >
-                          <span className="text-sm">{client}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeClient(index)}
-                            className="text-gray-500 hover:text-gray-700"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                 </>
               )}
             </div>
@@ -579,7 +508,8 @@ export default function UserManager() {
               <AlertDialogDescription>
                 This action cannot be undone. This will permanently delete the
                 user
-                {selectedUser && ` "${selectedUser.name}"`} from the system.
+                {selectedUser && ` "${selectedUser.full_name}"`} from the
+                system.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
