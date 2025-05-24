@@ -13,7 +13,7 @@ import { usePathname } from "next/navigation";
 
 const titleMap: Record<string, string> = {
   "/admin": "Dashboard Overview",
-  "/admin/users": "Manage Users",
+  "/admin/users": "User Manager",
   "/admin/clients": "Client Manager",
   "/admin/clients/new": "Add New Client",
   "/admin/billing": "Billing Center",
