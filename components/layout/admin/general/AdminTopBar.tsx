@@ -18,7 +18,7 @@ const titleMap: Record<string, string> = {
   "/admin/clients/new": "Add New Client",
   "/admin/billing": "Billing Center",
   "/admin/subscriptions": "Subscription Manager",
-  "/admin/subscriptions/new": "Add New Plan",
+  "/admin/subscriptions/new": "Subscription Manager",
   "/admin/messaging": "Messaging",
   "/admin/reporting": "Reporting",
   "/admin/exceptions": "Exceptions",
