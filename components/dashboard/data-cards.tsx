@@ -9,13 +9,13 @@ const fetcher = (u: string) => fetch(u).then((r) => r.json());
 type Props = { timeFilter: string };
 
 export default function DataCards({ timeFilter }: Props) {
-  const { data, isLoading } = useSWR(
+  const { data, error, isLoading } = useSWR(
     `/api/admin/dashboard?range=${timeFilter}`,
     fetcher
   );
 
   if (isLoading) return <p>Loading…</p>;
-  if (!data) return <p>Error 😢</p>;
+  if (error || !data?.current || !data?.previous) return <p>Error 😢</p>;
 
   const { current, previous } = data;
 

@@ -1,91 +1,63 @@
 // components/client/ClientOverview.tsx
 "use client";
 
-import { Avatar } from "@radix-ui/react-avatar";
 import { Check, Link } from "lucide-react";
-import { useState } from "react";
+import useSWR, { mutate } from "swr";
+import { Avatar } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 
 export default function ClientOverview() {
-  const [pipelineSteps, setPipelineSteps] = useState([
-    {
-      title: "Discovery: Initial Survey",
-      status: "completed",
-      date: "Jan 15, 2025",
-    },
-    {
-      title: "Discovery: Process Deep Dive",
-      status: "completed",
-      date: "Jan 20, 2025",
-    },
-    {
-      title: "ADA Proposal Sent",
-      status: "completed",
-      date: "Jan 25, 2025",
-    },
-    {
-      title: "ADA Proposal Review",
-      status: "pending",
-      date: undefined,
-    },
-    {
-      title: "ADA Contract Sent",
-      status: "disabled",
-      date: undefined,
-    },
-    {
-      title: "ADA Contract Signed",
-      status: "disabled",
-      date: undefined,
-    },
-    {
-      title: "Credentials Collected",
-      status: "disabled",
-      date: undefined,
-    },
-    {
-      title: "Factory Build Initiated",
-      status: "disabled",
-      date: undefined,
-    },
-    {
-      title: "Test Plan Generated",
-      status: "disabled",
-      date: undefined,
-    },
-    {
-      title: "Testing Started",
-      status: "disabled",
-      date: undefined,
-    },
-    {
-      title: "Production Deploy",
-      status: "disabled",
-      date: undefined,
-    },
-  ]);
+  const fetcher = (u: string) => fetch(u).then((r) => r.json());
+  const { data, isLoading } = useSWR("/api/client/overview", fetcher);
 
-  function handleMarkComplete(index: number) {
-    setPipelineSteps((steps) => {
-      const newSteps = [...steps];
-      // Mark current as completed
-      newSteps[index] = {
-        ...newSteps[index],
-        status: "completed",
-        date: new Date().toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        }),
-      };
-      // Set next step to pending if it exists and is disabled
-      if (newSteps[index + 1] && newSteps[index + 1].status === "disabled") {
-        newSteps[index + 1] = { ...newSteps[index + 1], status: "pending" };
-      }
-      return newSteps;
+  if (isLoading || !data) return <p>Loading…</p>;
+
+  const pipelineOrder = [
+    "DISCOVERY_INITIAL_SURVEY",
+    "DISCOVERY_PROCESS_DEEP_DIVE",
+    "ADA_PROPOSAL_SENT",
+    "ADA_PROPOSAL_REVIEW_DONE",
+    "ADA_CONTRACT_SENT",
+    "ADA_CONTRACT_SIGNED",
+    "CREDENTIALS_COLLECTED",
+    "FACTORY_BUILD_INITIATED",
+    "TEST_PLAN_GENERATED",
+    "TESTING_STARTED",
+    "PRODUCTION_DEPLOY",
+  ] as const;
+
+  const engineers = data.assigned_ses as any[];
+  const clientUsers = data.client_users as any[];
+  const docLinks = data.document_links as any[];
+
+  const rows = data?.pipeline ?? [];
+
+  const pipelineSteps = pipelineOrder.map((phase, i, arr) => {
+    const row = rows.find((r: any) => r.title === phase) || {};
+    const completed = !!row.completed_at;
+    const previous =
+      arr[i - 1] &&
+      data.pipeline.find((r: any) => r.title === arr[i - 1])?.completed_at;
+    return {
+      title: phase
+        .replace(/_/g, " ")
+        .toLowerCase()
+        .replace(/\b\w/g, (c) => c.toUpperCase()),
+      phase,
+      status: completed ? "completed" : previous ? "pending" : "disabled",
+      date: completed ? row.completed_at : undefined,
+    };
+  });
+
+  async function handleMarkComplete(phase: string) {
+    await fetch("/api/client/pipeline", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phase }),
     });
+    mutate("/api/client/overview"); // refresh
   }
 
   return (
@@ -96,23 +68,14 @@ export default function ClientOverview() {
           Assigned Support Engineers
         </h2>
         <div className="flex flex-wrap gap-4">
-          <EngineerCard
-            name="John Smith"
-            role="Lead SE"
-            imageUrl="/placeholder.svg?height=80&width=80&query=professional man headshot"
-          />
-          <EngineerCard
-            name="Sarah Johnson"
-            role="Support SE"
-            imageUrl="/placeholder.svg?height=80&width=80&query=professional woman headshot"
-          />
-          {/* <Button
-                    variant="outline"
-                    className="h-auto py-2 px-4 text-sm"
-                  >
-                    Change assigned SEs
-                  </Button> */}
-          {/* Might Implement Later */}
+          {engineers.map((e) => (
+            <EngineerCard
+              key={e.id}
+              name={e.name}
+              role={e.role}
+              imageUrl="/assets/avatar-image.jpg"
+            />
+          ))}
         </div>
       </section>
 
@@ -136,30 +99,28 @@ export default function ClientOverview() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b border-[#e5e7eb]">
-                    <TableCell>Robert Wilson</TableCell>
-                    <TableCell>robert@company.com</TableCell>
-                    <TableCell>+1 555-0123</TableCell>
-                    <TableCell>
-                      <Check className="h-5 w-5 text-[#059669]" />
-                    </TableCell>
-                    <TableCell>
-                      <Check className="h-5 w-5 text-[#059669]" />
-                    </TableCell>
-                    <TableCell>Primary contact</TableCell>
-                  </tr>
-                  <tr>
-                    <TableCell>Emily Brown</TableCell>
-                    <TableCell>emily@company.com</TableCell>
-                    <TableCell>+1 555-0124</TableCell>
-                    <TableCell>
-                      <span className="block h-0.5 w-3 bg-[#757575]"></span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="block h-0.5 w-3 bg-[#757575]"></span>
-                    </TableCell>
-                    <TableCell>Technical lead</TableCell>
-                  </tr>
+                  {clientUsers.map((u) => (
+                    <tr key={u.id} className="border-b border-[#e5e7eb]">
+                      <TableCell>{u.name}</TableCell>
+                      <TableCell>{u.email}</TableCell>
+                      <TableCell>{u.phone}</TableCell>
+                      <TableCell>
+                        {u.billing ? (
+                          <Check className="h-5 w-5 text-[#059669]" />
+                        ) : (
+                          <span className="block h-0.5 w-3 bg-[#757575]" />
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {u.admin ? (
+                          <Check className="h-5 w-5 text-[#059669]" />
+                        ) : (
+                          <span className="block h-0.5 w-3 bg-[#757575]" />
+                        )}
+                      </TableCell>
+                      <TableCell>{u.notes}</TableCell>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -173,34 +134,13 @@ export default function ClientOverview() {
               <h3 className="font-medium text-[#1f2937]">Document Links</h3>
             </div>
             <div className="p-4 space-y-4">
-              <DocumentLink
-                label="Survey Questions"
-                url="https://docs.example.com/survey"
-              />
-              <DocumentLink
-                label="Survey Results"
-                url="https://docs.example.com/results"
-              />
-              <DocumentLink
-                label="Process Documentation"
-                url="https://docs.example.com/process"
-              />
-              <DocumentLink
-                label="ADA Proposal"
-                url="https://docs.example.com/proposal"
-              />
-              <DocumentLink
-                label="Contract"
-                url="https://docs.example.com/contract"
-              />
-              <DocumentLink
-                label="Factory Markdown"
-                url="https://docs.example.com/factory-markdown"
-              />
-              <DocumentLink
-                label="Test Plan"
-                url="https://docs.example.com/test-plan"
-              />
+              {docLinks.map((d, idx) => (
+                <DocumentLink
+                  key={`${d.kind}-${idx}`} /* ← unique */
+                  label={d.kind.replace(/_/g, " ").toLowerCase()}
+                  url={d.url}
+                />
+              ))}
             </div>
           </Card>
         </div>
@@ -214,13 +154,13 @@ export default function ClientOverview() {
           </div>
           <div className="p-6">
             <div className="space-y-6">
-              {pipelineSteps.map((step, idx) => (
+              {pipelineSteps.map((step) => (
                 <PipelineStep
                   key={step.title}
                   title={step.title}
                   status={step.status}
                   date={step.date}
-                  onMarkComplete={() => handleMarkComplete(idx)}
+                  onMarkComplete={() => handleMarkComplete(step.phase)}
                 />
               ))}
             </div>

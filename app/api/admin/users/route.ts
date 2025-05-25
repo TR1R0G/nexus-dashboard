@@ -1,4 +1,3 @@
-// app/api/admin/users/route.ts
 import { supabaseService } from "@/src/utils/supabase/service";
 import { NextResponse } from "next/server";
 
@@ -9,24 +8,45 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const body = await req.json();
+  const body = await req.json(); // p_role, p_name, … , maybe p_id
+  const sb = supabaseService();
 
-  // 1. Create user in Supabase Auth if not exists
-  // (You may want to check if the user already exists by email)
-  const { data: user, error: authError } =
-    await supabaseService().auth.admin.createUser({
+  let uid = body.p_id as string | undefined;
+
+  /* ──────────────────────────────────────────
+     1)  AUTH side  
+  ─────────────────────────────────────────── */
+  if (!uid) {
+    /* --- INSERT ----------------------------------------------------- */
+    const { data, error: authErr } = await sb.auth.admin.createUser({
       email: body.p_email,
       password: "password",
       email_confirm: true,
+      user_metadata: { role: body.p_role },
     });
+    if (authErr) return NextResponse.json({ error: authErr }, { status: 500 });
 
-  if (authError)
-    return NextResponse.json({ error: authError }, { status: 500 });
+    uid = data.user.id; // use GoTrue-generated id
+  } else {
+    /* --- UPDATE ----------------------------------------------------- */
+    const { error: authErr } = await sb.auth.admin.updateUserById(uid, {
+      email: body.p_email,
+      user_metadata: { role: body.p_role },
+    });
+    if (authErr) return NextResponse.json({ error: authErr }, { status: 500 });
+  }
 
-  // 2. Use the new user's ID for the upsert
-  const { error } = await supabaseService().rpc("admin_upsert_user", {
-    ...body,
-    p_id: user.user.id,
+  /* ──────────────────────────────────────────
+     2)  Business side  (public.users via RPC) 
+  ─────────────────────────────────────────── */
+  const { error } = await sb.rpc("admin_upsert_user", {
+    p_role: body.p_role,
+    p_name: body.p_name,
+    p_email: body.p_email,
+    p_phone: body.p_phone,
+    p_cost_rate: body.p_cost_rate,
+    p_bill_rate: body.p_bill_rate,
+    p_id: uid, // always supply id now
   });
 
   if (error) return NextResponse.json({ error }, { status: 500 });
@@ -36,6 +56,10 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   const id = new URL(req.url).searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+
+  /* optional: remove from auth.users as well */
+  await supabaseService().auth.admin.deleteUser(id);
+
   const { error } = await supabaseService().rpc("admin_delete_user", {
     p_id: id,
   });
