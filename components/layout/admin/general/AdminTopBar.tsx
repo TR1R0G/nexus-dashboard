@@ -8,8 +8,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { createClient } from "@supabase/supabase-js";
 import { Bell } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const titleMap: Record<string, string> = {
   "/admin": "Dashboard Overview",
@@ -30,9 +31,30 @@ interface TopNavProps {
 
 export default function AdminTopBar({ title }: TopNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
 
   // Use provided title or derive from pathname
   const pageTitle = title || titleMap[pathname || "/admin"] || "Dashboard";
+
+  // Supabase client
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    // Remove all sb-* cookies (defensive, but server-side is what matters)
+    document.cookie.split(";").forEach((c) => {
+      if (c.trim().startsWith("sb-")) {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      }
+    });
+    // Only redirect to /api/logout, let it handle the rest
+    window.location.href = "/api/logout";
+  }
 
   return (
     <header className="h-16 border-b bg-white flex items-center justify-between px-6">
@@ -54,7 +76,7 @@ export default function AdminTopBar({ title }: TopNavProps) {
           <DropdownMenuContent align="end">
             <DropdownMenuItem>Profile</DropdownMenuItem>
             <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

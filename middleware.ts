@@ -35,20 +35,22 @@ export async function middleware(req: any) {
 
   if (error) console.error("get_current_role error", error);
 
-  const role = data as "ADMIN" | "SE" | "CLIENT" | null;
+  const role = data as "ADMIN" | "SE" | "CLIENT" | "GUEST" | null;
+
+  console.log("Role: ", role);
 
   // 4️⃣  Redirect rules
   const path = req.nextUrl.pathname;
+
+  const needsAuth = path.startsWith("/admin") || path.startsWith("/client");
+  if (needsAuth && (!role || role === "GUEST"))
+    return NextResponse.redirect(new URL("/auth/signin", req.url));
 
   if (path.startsWith("/admin") && role !== "ADMIN" && role !== "SE")
     return NextResponse.redirect(new URL("/client", req.url));
 
   if (path.startsWith("/client") && (role === "ADMIN" || role === "SE"))
     return NextResponse.redirect(new URL("/admin", req.url));
-
-  const needsAuth = path.startsWith("/admin") || path.startsWith("/client");
-  if (needsAuth && !role)
-    return NextResponse.redirect(new URL("/auth/signin", req.url));
 
   return res;
 }
