@@ -58,10 +58,12 @@ export default function ClientWorkflows() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-[#1f2937]">Workflows</h2>
-        <Button className="bg-[#000000] hover:bg-[#1f2937]">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Workflow
-        </Button>
+        <Link href="/admin/clients/add">
+          <Button className="bg-[#000000] hover:bg-[#1f2937]">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Workflow
+          </Button>
+        </Link>
       </div>
 
       <Card className="bg-white rounded-lg border border-[#e5e7eb] overflow-hidden p-0">

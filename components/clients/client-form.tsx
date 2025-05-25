@@ -7,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface Department {
@@ -71,7 +73,7 @@ export function ClientForm() {
     if (newDepartment.trim()) {
       setDepartments([
         ...departments,
-        { id: Date.now().toString(), name: newDepartment },
+        { id: crypto.randomUUID(), name: newDepartment },
       ]);
       setNewDepartment("");
     }
@@ -144,10 +146,52 @@ export function ClientForm() {
     setEngineers(engineers.filter((eng) => eng.id !== id));
   };
 
+  const router = useRouter();
+
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Process form data here
+
+    /* ----------- basic client-side validation ---------------- */
+    if (!companyName.trim()) {
+      alert("Workflow name is required");
+      return;
+    }
+
+    if (departments.length === 0) {
+      alert("Create at least one department first.");
+      return;
+    }
+
+    // sample nodes – in a real UI build this from inputs
+    const nodes = [
+      { name: "Read Email", type: "EMAIL_MONITOR", position: 1 },
+      { name: "Create Lead", type: "CRM_POST", position: 2 },
+    ];
+
+    const payload = {
+      name: companyName.trim(), // REQUIRED
+      departmentId: departments[0].id, // REQUIRED
+      nodes, // REQUIRED (non-empty array)
+      description: companyUrl || null,
+      timeSaved: 0.5,
+      moneySaved: 1,
+    };
+
+    const res = await fetch("/api/client/workflows", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const { error } = await res.json();
+      alert("Failed: " + (error?.message ?? res.statusText));
+      return;
+    }
+
+    /* success */
+    router.push("/admin/clients");
   };
 
   return (
@@ -509,9 +553,11 @@ export function ClientForm() {
 
           {/* Form Actions */}
           <div className="flex justify-end gap-4">
-            <Button type="button" variant="outline">
-              Cancel
-            </Button>
+            <Link href="/admin/clients">
+              <Button type="button" variant="outline">
+                Cancel
+              </Button>
+            </Link>
             <Button
               type="submit"
               className="bg-[#141417] hover:bg-[#141417]/90"
