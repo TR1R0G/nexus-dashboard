@@ -60,3 +60,16 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```bash
 npm run dev            # http://localhost:3000
 ```
+
+### 5 User accounts
+#### Admin Account Info
+email: admin@braintrust.com
+password: password
+
+#### SE Account Info
+email: se@braintrust.com
+password: password
+
+#### Client Account Info
+email: client@braintrust.com
+password: password
