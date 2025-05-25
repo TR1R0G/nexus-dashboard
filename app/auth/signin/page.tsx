@@ -107,19 +107,6 @@ export default function SignInPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="remember"
-                  className="h-4 w-4 rounded border-[#dbdbdb] text-[#1f2937] focus:ring-[#1f2937]"
-                />
-                <label htmlFor="remember" className="text-sm text-[#3b3b3b]">
-                  Remember me
-                </label>
-              </div>
-            </div>
-
             <button
               type="submit"
               className="w-full h-10 bg-[#141417] hover:bg-[#1f2937] text-white rounded-md flex items-center justify-center gap-2"
