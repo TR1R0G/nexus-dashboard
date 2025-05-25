@@ -37,8 +37,6 @@ export async function middleware(req: any) {
 
   const role = data as "ADMIN" | "SE" | "CLIENT" | null;
 
-  console.log("Role: ", role);
-
   // 4️⃣  Redirect rules
   const path = req.nextUrl.pathname;
 

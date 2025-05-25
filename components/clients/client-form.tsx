@@ -148,13 +148,6 @@ export function ClientForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Process form data here
-    console.log({
-      companyName,
-      companyUrl,
-      departments,
-      users,
-      engineers,
-    });
   };
 
   return (

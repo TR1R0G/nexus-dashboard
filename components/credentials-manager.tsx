@@ -264,9 +264,6 @@ export function CredentialsManager() {
 
     // Update the selected service to show it's connected
     setSelectedService((prev) => ({ ...prev, connected: true }));
-
-    // You would also handle encryption and storage in AWS Secrets Manager here
-    console.log("Saving credentials for:", selectedService.name);
   };
 
   return (

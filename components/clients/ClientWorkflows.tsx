@@ -1,4 +1,3 @@
-// components/client/ClientWorkflows.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,9 @@ import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import useSWR, { mutate } from "swr";
+
+const fetcher = (u: string) => fetch(u).then((r) => r.json());
 
 function TableHeader({ children }: { children: React.ReactNode }) {
   return (
@@ -15,7 +16,6 @@ function TableHeader({ children }: { children: React.ReactNode }) {
     </th>
   );
 }
-
 function TableCell({
   children,
   className = "",
@@ -31,42 +31,27 @@ function TableCell({
 }
 
 export default function ClientWorkflows() {
-  const [workflows, setWorkflows] = useState([
-    {
-      date: "Jan 15, 2025",
-      department: "Sales",
-      name: "Lead Processing",
-      nodes: 12,
-      executions: 234,
-      exceptions: 2,
-      timeSaved: 30,
-      moneySaved: 75,
-      status: true,
-    },
-    {
-      date: "Jan 10, 2025",
-      department: "HR",
-      name: "Onboarding",
-      nodes: 8,
-      executions: 45,
-      exceptions: 0,
-      timeSaved: 120,
-      moneySaved: 180,
-      status: true,
-    },
-  ]);
+  const {
+    data: workflows,
+    error,
+    isLoading,
+  } = useSWR<any[]>("/api/client/workflows", fetcher);
 
-  function handleStatusChange(index: number, checked: boolean) {
-    const confirmed = window.confirm(
-      `Are you sure you want to ${
-        checked ? "activate" : "deactivate"
-      } this workflow?`
+  if (isLoading) return <p>Loading…</p>;
+  if (error) return <p>Error loading workflows</p>;
+
+  async function toggle(id: string, value: boolean) {
+    const ok = confirm(
+      `Are you sure you want to ${value ? "activate" : "deactivate"}?`
     );
-    if (confirmed) {
-      setWorkflows((prev) =>
-        prev.map((w, i) => (i === index ? { ...w, status: checked } : w))
-      );
-    }
+    if (!ok) return;
+
+    await fetch("/api/client/workflow-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ workflowId: id, active: value }),
+    });
+    mutate("/api/client/workflows");
   }
 
   return (
@@ -97,41 +82,39 @@ export default function ClientWorkflows() {
               </tr>
             </thead>
             <tbody>
-              {workflows.map((workflow, index) => (
-                <tr key={workflow.name} className="border-b border-[#e5e7eb]">
+              {workflows?.map((w) => (
+                <tr key={w.id} className="border-b border-[#e5e7eb]">
                   <TableCell>
                     <div>
-                      <div>{workflow.date.split(",")[0]},</div>
-                      <div>{workflow.date.split(",")[1]}</div>
+                      <div>{w.create_date?.split(",")[0]},</div>
+                      <div>{w.create_date.split(",")[1]}</div>
                     </div>
                   </TableCell>
-                  <TableCell>{workflow.department}</TableCell>
-                  <TableCell>{workflow.name}</TableCell>
-                  <TableCell>{workflow.nodes}</TableCell>
+                  <TableCell>{w.department}</TableCell>
+                  <TableCell>{w.workflow_name}</TableCell>
+                  <TableCell>{w.nodes}</TableCell>
                   <TableCell className="text-[#4e86cf]">
-                    {workflow.executions}
+                    {w.executions}
                   </TableCell>
                   <TableCell className="text-[#4e86cf]">
-                    {workflow.exceptions}
+                    {w.exceptions}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-end">
-                      <span className="mr-1">{workflow.timeSaved}</span>
+                      <span className="mr-1">{w.time_saved}</span>
                       <span className="text-xs text-[#757575]">min</span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-end">
-                      <span className="mr-1">{workflow.moneySaved}</span>
+                      <span className="mr-1">{w.money_saved}</span>
                       <span className="text-xs text-[#757575]">USD</span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <Switch
-                      checked={workflow.status}
-                      onCheckedChange={(checked) =>
-                        handleStatusChange(index, checked)
-                      }
+                      checked={w.is_active}
+                      onCheckedChange={(v) => toggle(w.id, v)}
                     />
                   </TableCell>
                   <TableCell>
