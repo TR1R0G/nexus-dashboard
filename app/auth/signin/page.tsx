@@ -67,6 +67,32 @@ export default function SignInPage() {
             <p className="text-[#3b3b3b]">Access your Nexus dashboard</p>
           </div>
 
+          {/* Test Account Info */}
+          <div className="mb-8 p-4 border border-[#dbdbdb] rounded-md bg-[#faf9f8] text-sm text-[#141417]">
+            <h3 className="font-semibold mb-2">Test Account Info</h3>
+            <div className="mb-2">
+              <span className="font-medium">Admin Account:</span> <br />
+              email: <span className="font-mono">
+                admin@braintrust.com
+              </span>{" "}
+              <br />
+              password: <span className="font-mono">password</span>
+            </div>
+            <div className="mb-2">
+              <span className="font-medium">SE Account:</span> <br />
+              email: <span className="font-mono">se@braintrust.com</span> <br />
+              password: <span className="font-mono">password</span>
+            </div>
+            <div>
+              <span className="font-medium">Client Account:</span> <br />
+              email: <span className="font-mono">
+                client@braintrust.com
+              </span>{" "}
+              <br />
+              password: <span className="font-mono">password</span>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium block">
